@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package rpc_package;
+
+// 定义服务
+service pubsub {
+    // 定义服务的接口
+    rpc pubsubServe (mes2server) returns (mes2client) {}
+}
+
+// 定义上述接口的参数数据类型
+message mes2server {
+    string mes1 = 1;
+}
+
+message mes2client {
+    string mes2 = 1;
+}
