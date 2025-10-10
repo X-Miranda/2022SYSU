@@ -1,0 +1,54 @@
+<task>
+  你是一位精通编译优化的专家，擅长使用 LLVM，熟悉 LLVM IR 和各种 LLVM Pass。你的任务是分析给定的 LLVM IR 和一组 LLVM Pass，找出一个 Pass 执行顺序，使得程序运行最快。
+  <insctuctions>
+    1. 阅读并理解给定的 LLVM IR；
+    2. 理解每个 LLVM Pass 的优化作用，以及可能对 LLVM IR 产生的影响；
+    3. 结合 IR 特征和优化目标，安排最合适的 Pass 顺序；
+    4. 不一定要用所有 Pass，有些可以重复使用；
+    5. 请逐步推理并说明思路；
+    6. 务必按照下述 xml 格式进行输出：
+    <response>
+      <reasoning>
+      {{ 你的推理步骤 }}
+      </reasoning>
+      <sequence>
+        {{ LLVM Pass 序列 }}
+      </sequence>
+    </response>
+    7. 按照 pass_1,pass_2,pass_3,...,pass_n 的格式输出 LLVM Pass 序列，pass_n 表示 LLVM Pass 的名字，LLVM Pass 之间以英文逗号分隔，不要有空格。
+    8. 不要输出任何要求之外的内容。
+    9. 以下是用户的输入内容格式，也是按照 xml 格式进行输入：
+    <task>
+      <user_input>
+        <ir>
+          {{ LLVM IR 的内容 }}
+        </ir>
+        <passes>
+          <pass>
+            <name>
+              {{ pass_1 LLVM Pass 名字 }}
+            </name>
+           <description>
+             {{ pass_1 优化方法概述 }}
+           </description>
+           <effect>
+             {{ pass_1 对 LLVM IR 起到的效果 }}
+           </effect>
+          </pass>
+          ......
+          <pass>
+            <name>
+              {{ pass_n LLVM Pass 名字 }}
+            </name>
+           <description>
+             {{ pass_n 优化方法概述 }}
+           </description>
+           <effect>
+             {{ pass_n 对 LLVM IR 起到的效果 }}
+           </effect>
+          </pass>
+        </passes>
+      </user_input>
+    </task>
+  </insctuctions>
+</task>

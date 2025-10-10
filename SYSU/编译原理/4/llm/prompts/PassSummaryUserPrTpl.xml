@@ -1,0 +1,13 @@
+<task>
+  <user_input>
+    <name>
+      {name}
+    </name>
+    <hpp>
+{hpp}
+    </hpp>
+    <cpp>
+{cpp} 
+    </cpp>
+  </user_input>
+</task>

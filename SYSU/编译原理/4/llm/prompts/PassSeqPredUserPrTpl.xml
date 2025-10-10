@@ -1,0 +1,10 @@
+<task>
+  <user_input>
+    <ir>
+{ir}
+    </ir>
+    <passes>
+{passes}
+    </passes>
+  </user_input>
+</task>

@@ -1,0 +1,1 @@
+set(TASK4_REVIVE ON)
