@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>edit profile</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="icon" href="{{ url_for('static', filename='logo.png') }}" type="image/png">
+    <style>
+        :root {
+            --primary-color: #4e73df;
+            --secondary-color: #f8f9fc;
+            --accent-color: #1cc88a;
+        }
+        
+        body {
+            padding: 0;
+            margin: 0;
+            background-image: url('/static/images/Background_image.jpeg');
+            background-size: cover;
+            background-attachment: fixed;
+            background-position: center;
+            min-height: 100vh;
+            font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        }
+        
+        .card {
+            border: none;
+            border-radius: 0.35rem;
+            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.1);
+            background-color: rgba(255, 255, 255, 0.9);
+        }
+        
+        .card-header {
+            background-color: var(--primary-color);
+            color: white;
+            border-bottom: none;
+            padding: 1rem 1.35rem;
+            border-radius: 0.35rem 0.35rem 0 0 !important;
+        }
+        
+        .card-title {
+            font-weight: 700;
+            color: white;
+        }
+        
+        .form-control {
+            padding: 0.75rem 1rem;
+            border: 1px solid #d1d3e2;
+            border-radius: 0.35rem;
+        }
+        
+        .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25);
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            padding: 0.5rem 1.5rem;
+        }
+        
+        .btn-secondary {
+            padding: 0.5rem 1.5rem;
+        }
+
+        /* 密码验证相关样式 */
+        .error-message {
+            color: #dc3545;
+            font-size: 12px;
+            margin-top: 5px;
+            display: none;
+        }
+        .invalid {
+            border-color: #dc3545;
+        }
+        .valid {
+            border-color: #28a745;
+        }
+        .password-requirements {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-wrapper">
+        <div class="container mt-5">
+            <div class="row justify-content-center">
+                <div class="col-xl-6 col-lg-8 col-md-10">
+                    <div class="card">
+                        <div class="card-header py-3">
+                            <h4 class="m-0 font-weight-bold">
+                                <i class="fas fa-user-edit mr-2"></i>修改个人信息
+                            </h4>
+                        </div>
+                        <div class="card-body">
+                            <!-- 添加flash消息显示 -->
+                            {% with messages = get_flashed_messages(with_categories=true) %}
+                                {% if messages %}
+                                    {% for category, message in messages %}
+                                        <div class="alert alert-{{ 'danger' if category == 'error' else 'success' }} alert-dismissible fade show">
+                                            {{ message }}
+                                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                                <span aria-hidden="true">&times;</span>
+                                            </button>
+                                        </div>
+                                    {% endfor %}
+                                {% endif %}
+                            {% endwith %}
+                            
+                            <form action="{{ url_for('edit_profile') }}" method="post" onsubmit="return validatePassword()">
+                                <div class="form-group">
+                                    <label for="contact" class="font-weight-bold">联系电话</label>
+                                    <input type="text" class="form-control" id="contact" name="contact" value="{{ contact }}" pattern="\d{11}" title="请输入11位数字的手机号" required>
+                                    <small class="form-text text-muted">请输入11位数字的手机号</small>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="password" class="font-weight-bold">新密码 <small>(选填)</small></label>
+                                    <input type="password" class="form-control" id="password" name="password" placeholder="如不需修改密码请留空" oninput="checkPasswordStrength()">
+                                    <div class="error-message" id="passwordError"></div>
+                                    <div class="password-requirements">
+                                        密码要求：6-20位字符，必须包含大写字母、小写字母、数字和特殊符号中的至少两种，不能包含空格
+                                    </div>
+                                </div>
+                                
+                                <div class="d-flex justify-content-between mt-4">
+                                    <a href="{{ url_for('view_profile') }}" class="btn btn-secondary">
+                                        <i class="fas fa-arrow-left mr-1"></i>返回
+                                    </a>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save mr-1"></i>保存更改
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <script>
+        function checkPasswordStrength() {
+            const password = document.getElementById('password').value;
+            const passwordInput = document.getElementById('password');
+            const passwordError = document.getElementById('passwordError');
+
+            // 如果密码为空，不进行验证
+            if (!password) {
+                passwordError.style.display = 'none';
+                passwordInput.classList.remove('invalid');
+                passwordInput.classList.remove('valid');
+                return true;
+            }
+
+            // 清除之前的错误信息
+            passwordError.style.display = 'none';
+            passwordError.textContent = '';
+
+            // 检查密码长度
+            if (password.length < 6 || password.length > 20) {
+                passwordInput.classList.add('invalid');
+                passwordInput.classList.remove('valid');
+                passwordError.textContent = '密码长度必须为6-20位';
+                passwordError.style.display = 'block';
+                return false;
+            }
+
+            // 检查是否包含空格
+            if (password.includes(' ')) {
+                passwordInput.classList.add('invalid');
+                passwordInput.classList.remove('valid');
+                passwordError.textContent = '密码不能包含空格';
+                passwordError.style.display = 'block';
+                return false;
+            }
+
+            // 检查字符类型
+            let hasUpper = /[A-Z]/.test(password);
+            let hasLower = /[a-z]/.test(password);
+            let hasNumber = /[0-9]/.test(password);
+            let hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+
+            let typeCount = 0;
+            if (hasUpper) typeCount++;
+            if (hasLower) typeCount++;
+            if (hasNumber) typeCount++;
+            if (hasSpecial) typeCount++;
+
+            if (typeCount < 2) {
+                passwordInput.classList.add('invalid');
+                passwordInput.classList.remove('valid');
+                passwordError.textContent = '密码必须包含大写字母、小写字母、数字和特殊符号中的至少两种';
+                passwordError.style.display = 'block';
+                return false;
+            }
+
+            // 密码符合要求
+            passwordInput.classList.add('valid');
+            passwordInput.classList.remove('invalid');
+            return true;
+        }
+
+        function validatePassword() {
+            const password = document.getElementById('password').value;
+            
+            // 如果密码不为空，验证密码强度
+            if (password && !checkPasswordStrength()) {
+                return false;
+            }
+
+            return true;
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>add member</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="icon" href="{{ url_for('static', filename='logo.png') }}" type="image/png">
+    <style>
+        :root {
+            --primary-color: #4e73df;
+            --secondary-color: #f8f9fc;
+            --accent-color: #1cc88a;
+        }
+
+        body {
+            padding: 0;
+            margin: 0;
+            background-image: url('/static/images/Background_image.jpeg');
+            background-size: cover;
+            background-attachment: fixed;
+            background-position: center;
+            min-height: 100vh;
+            font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        }
+        .card {
+            border: none;
+            border-radius: 0.35rem;
+            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.1);
+            background-color: rgba(255, 255, 255, 0.9);
+        }
+
+        .card-header {
+            background-color: var(--primary-color);
+            color: white;
+            border-bottom: none;
+            padding: 1rem 1.35rem;
+            border-radius: 0.35rem 0.35rem 0 0 !important;
+        }
+
+        .card-title {
+            font-weight: 700;
+            color: white;
+        }
+
+        .form-control {
+            padding: 0.75rem 1rem;
+            border: 1px solid #d1d3e2;
+            border-radius: 0.35rem;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25);
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            padding: 0.5rem 1.5rem;
+        }
+
+        .btn-secondary {
+            padding: 0.5rem 1.5rem;
+        }
+
+        .input-group-text {
+            background-color: #e9ecef;
+            color: #495057;
+        }
+        /* 原有样式保持不变 */
+        .error-message {
+            color: red;
+            font-size: 0.8rem;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-wrapper">
+        <div class="container mt-5">
+            <div class="row justify-content-center">
+                <div class="col-xl-8 col-lg-9 col-md-10">
+                    <div class="card">
+                        <div class="card-header py-3">
+                            <h4 class="m-0 font-weight-bold">
+                                <i class="fas fa-user-plus mr-2"></i>添加新会员
+                            </h4>
+                        </div>
+                        <div class="card-body">
+                            <!-- 添加这部分来显示flash消息 -->
+                            {% with messages = get_flashed_messages(with_categories=true) %}
+                                {% if messages %}
+                                    {% for category, message in messages %}
+                                        <div class="alert alert-{{ 'danger' if category == 'error' else 'success' }} alert-dismissible fade show">
+                                            {{ message }}
+                                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                                <span aria-hidden="true">&times;</span>
+                                            </button>
+                                        </div>
+                                    {% endfor %}
+                                {% endif %}
+                            {% endwith %}
+
+                        <form action="{{ url_for('add_member') }}" method="post">
+
+                                <div class="form-group">
+                                    <label for="name" class="font-weight-bold">用户名</label>
+                                    <input type="text" class="form-control" id="name" name="name" maxlength="8" required>
+                                    <small class="form-text text-muted">会员登录使用的用户名（不超过8个字符）</small>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="gender" class="font-weight-bold">性别</label>
+                                    <select class="form-control" id="gender" name="gender" required>
+                                        <option value="">请选择性别</option>
+                                        <option value="男">男</option>
+                                        <option value="女">女</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="age" class="font-weight-bold">年龄</label>
+                                    <input type="number" class="form-control" id="age" name="age" min="12" max="99" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="contact" class="font-weight-bold">联系电话</label>
+                                    <input type="tel" class="form-control" id="contact" name="contact" pattern="\d{11}" title="请输入11位数字的手机号" required>
+                                    <small class="form-text text-muted">11位手机号码</small>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="membership_level" class="font-weight-bold">会员等级</label>
+                                    <select class="form-control" id="membership_level" name="membership_level" required>
+                                        <option value="1">普通会员</option>
+                                        <option value="2">白银会员</option>
+                                        <option value="3">黄金会员</option>
+                                        <option value="4">铂金会员</option>
+                                        <option value="5">黑金会员</option>
+                                    </select>
+                                </div>
+
+                                <div class="d-flex justify-content-between mt-4">
+                                    <a href="{{ url_for('manage_members') }}" class="btn btn-secondary">
+                                        <i class="fas fa-times mr-1"></i>取消
+                                    </a>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-check mr-1"></i>确认添加
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>View Courses</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="icon" href="{{ url_for('static', filename='logo.png') }}" type="image/png">
+    <style>
+        body {
+            padding: 0;
+            margin: 0;
+            background-image: url('/static/images/Background_image.jpeg');
+            background-size: cover;
+            background-attachment: fixed;
+            background-position: center;
+            min-height: 100vh;
+        }
+        .container-wrapper {
+            background-color: rgba(255, 255, 255, 0.95);
+            width: 95vw;
+            min-height: 95vh;
+            margin: 2.5vh auto;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+            overflow: auto;
+        }
+        .member-table {
+            width: 100%;
+        }
+        .course-table {
+            margin-top: 20px;
+        }
+        .nav-item.active a {
+            color: red;
+            font-weight: bold;
+            transform: scale(1.1);
+            transition: transform 0.3s ease, color 0.3s ease;
+        }
+        .navbar-nav .nav-link {
+            transition: transform 0.3s ease;
+        }
+        .navbar-nav .nav-link:hover, .navbar-nav .nav-link:focus {
+            transform: scale(1.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="container-wrapper">
+        <!-- 导航栏 -->
+        <nav class="navbar navbar-expand-lg navbar-light bg-light">
+            {% if session.role == 'admin' %}
+            <a class="navbar-brand" href="{{ url_for('view_courses') }}">课程信息管理</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item {% if current_page =='members' %}active{% endif %}">
+                        <a class="nav-link" href="{{ url_for('manage_members') }}">用户信息管理</a>
+                    </li>
+                </ul>
+            </div>
+            {% elif session.role == 'user' %}
+            <a class="navbar-brand" href="{{ url_for('view_courses') }}">全部课程</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item {% if current_page == 'view_reservations_by_member' %}active{% endif %}">
+                        <a class="nav-link" href="{{ url_for('view_reservations_by_member', member_id=session.get('member_id')) }}">我的课程</a>
+                    </li>
+                    <li class="nav-item {% if current_page == 'view_profile' %}active{% endif %}">
+                        <a class="nav-link" href="{{ url_for('view_profile') }}">个人信息</a>
+                    </li>
+                </ul>
+            </div>
+            {% endif %}
+            <!-- 退出按钮 -->
+            {% if session.role %}
+            <form action="{{ url_for('logout') }}" method="post" style="margin-left: auto;">
+                <button type="submit" class="btn btn-danger">退出</button>
+            </form>
+            {% endif %}
+        </nav>
+
+        <!-- 修改后的消息提示部分 -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert" id="alert-{{ loop.index }}">
+                        {{ message }}
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close" onclick="closeAlert('alert-{{ loop.index }}')">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <form action="{{ url_for('search_courses') }}" method="get">
+            <div class="form-group">
+                <label for="search">搜索课程名:</label>
+                <input type="text" class="form-control" id="search" name="search" placeholder="输入课程名">
+            </div>
+            <button type="submit" class="btn btn-primary">查询</button>
+            <a href="{{ url_for('view_courses') }}" class="btn btn-secondary">取消</a>
+        </form>
+        <div style="margin-top: 20px;">
+            {% if session.role == 'admin' %}
+            <a href="{{ url_for('add_course') }}" class="btn btn-primary">添加新课</a>
+            {% endif %}
+        </div>
+        <table class="table table-striped course-table">
+            <thead>
+                <tr>
+                    <th>课程ID</th>
+                    <th>课程名</th>
+                    <th>上课时间</th>
+                    <th>教练</th>
+                    <th>价格</th>
+                    <th>选择</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for course in courses %}
+                <tr>
+                    <td>{{ course.course_id }}</td>
+                    <td>{{ course.course_name }}</td>
+                    <td>{{ course.duration }}</td>
+                    <td>{{ course.coach }}</td>
+                    <td>{{ course.price }}</td>
+                    {% if session.role == 'admin' %}
+                    <td>
+                        <a href="{{ url_for('edit_course', course_id=course.course_id) }}" class="btn btn-sm btn-info">修改</a>
+                        <form action="{{ url_for('delete_course', course_id=course.course_id) }}" method="post" style="display: inline;">
+                            <button type="submit" class="btn btn-sm btn-danger" onclick="return confirmDelete()">删除</button>
+                        </form>
+                    </td>
+                    {% elif session.role == 'user' %}
+                    <td>
+                        {% if is_reserved_by_current_user(course.course_id) %}
+                        <form action="{{ url_for('cancel_reservation', course_id=course.course_id) }}" method="post" style="display: inline;">
+                            <button type="submit" class="btn btn-sm btn-warning">取消预约</button>
+                        </form>
+                        {% else %}
+                        <form action="{{ url_for('make_reservation', course_id=course.course_id) }}" method="post" style="display: inline;">
+                            <button type="submit" class="btn btn-sm btn-success">预约</button>
+                        </form>
+                        {% endif %}
+                    </td>
+                    {% endif %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- 添加JavaScript代码 -->
+    <script>
+        function closeAlert(alertId) {
+            document.getElementById(alertId).style.display = 'none';
+        }
+
+        function confirmDelete() {
+            return confirm('确定要删除此课程吗？如果该课程已被预约，删除操作将失败。');
+        }
+    </script>
+</body>
+</html>

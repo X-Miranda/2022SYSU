@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Gym Members</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="icon" href="{{ url_for('static', filename='logo.png') }}" type="image/png">
+    <style>
+     body {
+        padding: 0;
+        margin: 0;
+        background-image: url('/static/images/Background_image.jpeg');
+        background-size: cover;
+        background-attachment: fixed;
+        background-position: center;
+        min-height: 100vh;
+    }
+    .container-wrapper {
+        background-color: rgba(255, 255, 255, 0.95); /* 透明度 0.95 */
+        width: 95vw;                  /* 视窗宽度的 95% */
+        min-height: 95vh;             /* 视窗高度的 95% */
+        margin: 2.5vh auto;           /* 上下边距 2.5%，左右自动居中 */
+        padding: 20px;
+        border-radius: 10px;          /* 圆角 10px */
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.2); /* 阴影效果 */
+        overflow: auto;
+    }
+    .member-table {
+        width: 100%;
+    }
+    .course-table {
+        margin-top: 20px;
+    }
+    .nav-item.active a {
+        color: red;
+        font-weight: bold;
+        transform: scale(1.1);
+        transition: transform 0.3s ease, color 0.3s ease;
+        display: inline-block;
+    }
+    .navbar-nav .nav-link {
+        transition: transform 0.3s ease;
+        display: inline-block;
+    }
+    .navbar-nav .nav-link:hover, .navbar-nav .nav-link:focus {
+        transform: scale(1.1);
+    }
+    </style>
+</head>
+<body>
+    <div class="container-wrapper">
+        <!-- 导航栏 -->
+        <nav class="navbar navbar-expand-lg navbar-light bg-light">
+            <a class="navbar-brand" href="{{ url_for('manage_members') }}">用户信息管理</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    </li>
+                    <li class="nav-item {% if current_page == 'courses' %}active{% endif %}">
+                        <a class="nav-link" href="{{ url_for('view_courses') }}">课程信息管理</a>
+                    </li>
+                </ul>
+            </div>
+            <!-- 退出按钮 -->
+            {% if session.role %}
+            <form action="{{ url_for('logout') }}" method="post" style="margin-left: auto;">
+                <button type="submit" class="btn btn-danger">退出</button>
+            </form>
+            {% endif %}
+        </nav>
+        <form action="{{ url_for('search_members') }}" method="get">
+            <div class="form-group">
+                <label for="search">搜索会员名:</label>
+                <input type="text" class="form-control" id="search" name="search" placeholder="输入会员名">
+            </div>
+            <button type="submit" class="btn btn-primary">查询</button>
+            <a href="{{ url_for('manage_members') }}" class="btn btn-secondary">取消</a>
+        </form>
+        <div style="margin-top: 20px;">
+            <a href="{{ url_for('add_member') }}" class="btn btn-primary mb-3">添加新会员</a>
+            <table class="table table-striped member-table">
+                <thead>
+                    <tr>
+                        <th>会员ID</th>
+                        <th>用户名</th>
+                        <th>性别</th>
+                        <th>年龄</th>
+                        <th>联系电话</th>
+                        <th>会员等级</th>
+                        <th>选择</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for member in members %}
+                    <tr>
+                        <td>{{ member.member_id }}</td>
+                        <td>{{ member.name }}</td>
+                        <td>{{ member.gender }}</td>
+                        <td>{{ member.age }}</td>
+                        <td>{{ member.contact }}</td>
+                        <td>
+                            {% if member.membership_level == '1' %}普通会员
+                            {% elif member.membership_level == '2' %}白银会员
+                            {% elif member.membership_level == '3' %}黄金会员
+                            {% elif member.membership_level == '4' %}铂金会员
+                            {% elif member.membership_level == '5' %}黑金会员
+                            {% else %}未知等级
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{{ url_for('edit_member', member_id=member.member_id) }}" class="btn btn-sm btn-info">修改</a>
+                            <form action="{{ url_for('delete_member', member_id=member.member_id) }}" method="post" style="display: inline;">
+                                <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this member?')">删除</button>
+                            </form>
+                            <a href="{{ url_for('view_reservations_by_member', member_id=member.member_id) }}" class="btn btn-sm btn-success">预约情况</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>

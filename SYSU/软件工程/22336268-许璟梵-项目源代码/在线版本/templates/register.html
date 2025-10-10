@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Register</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="icon" href="{{ url_for('static', filename='logo.png') }}" type="image/png">
+    <style>
+        body {
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-image: url('/static/images/Background_image.jpeg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+        .register-container {
+            width: 350px;
+            padding: 30px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            font-size: 24px;
+            margin-bottom: 25px;
+            text-align: center;
+            color: #333;
+        }
+        .form-group {
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+        }
+        .form-group label {
+            width: 70px;
+            margin-right: 10px;
+            font-size: 14px;
+            color: #555;
+        }
+        .form-control {
+            flex: 1;
+            padding: 10px 15px;
+            font-size: 14px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            height: 40px;
+        }
+        .btn {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            font-weight: 500;
+            background-color: #4285f4;
+            border: none;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+        .btn:hover {
+            background-color: #3367d6;
+        }
+        .radio-group {
+            display: flex;
+            align-items: center;
+            flex: 1;
+        }
+        .radio-inline {
+            font-size: 14px;
+            margin-right: 15px;
+            display: flex;
+            align-items: center;
+        }
+        .radio-inline input {
+            margin-right: 5px;
+        }
+        .optional-text {
+            font-size: 12px;
+            color: #999;
+            margin-left: 10px;
+        }
+        .login-link {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 14px;
+            color: #666;
+        }
+        .login-link a {
+            color: #4285f4;
+            text-decoration: none;
+        }
+        .password-requirements {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+            margin-left: 80px;
+        }
+        .invalid {
+            border-color: #dc3545;
+        }
+        .valid {
+            border-color: #28a745;
+        }
+        .error-message {
+            color: #dc3545;
+            font-size: 12px;
+            margin-left: 80px;
+            margin-top: 5px;
+            display: none;
+        }
+        .age-container {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+        }
+        .age-input {
+            width: 100%;
+        }
+        .age-error {
+            color: #dc3545;
+            font-size: 12px;
+            margin-top: 5px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="register-container">
+        <h1>用户注册</h1>
+        <form action="{{ url_for('register') }}" method="post" onsubmit="return validatePassword()">
+            <div class="form-group">
+                <label for="username">用户名：</label>
+                <input type="text" class="form-control" id="username" name="username" placeholder="不超过8位的字符" required>
+            </div>
+            <div class="form-group">
+                <label for="password">密码：</label>
+                <input type="password" class="form-control" id="password" name="password" placeholder="6-20位字符" required
+                       oninput="checkPasswordStrength()">
+            </div>
+            <div class="error-message" id="passwordError"></div>
+            <div class="form-group">
+                <label for="confirm_password">确认密码：</label>
+                <input type="password" class="form-control" id="confirm_password" name="confirm_password" placeholder="再次输入密码" required>
+            </div>
+            <div class="error-message" id="confirmPasswordError"></div>
+            <div class="form-group">
+                <label for="contact">手机号：</label>
+                <input type="text" class="form-control" id="contact" name="contact" placeholder="11位手机号码" pattern="\d{11}" title="请输入11位数字的手机号" required>
+            </div>
+            <div class="form-group">
+                <label for="age">年龄：</label>
+                <div style="display: flex; align-items: center; flex: 1;">
+                    <input type="number" class="form-control" id="age" name="age" placeholder="选填" oninput="validateAge(this)">
+                </div>
+                <div class="age-error" id="ageError"></div>
+            </div>
+            <div class="form-group">
+                <label>性别：</label>
+                <div class="radio-group">
+                    <label class="radio-inline">
+                        <input type="radio" name="gender" value="F"> 女
+                    </label>
+                    <label class="radio-inline">
+                        <input type="radio" name="gender" value="M"> 男
+                    </label>
+                </div>
+            </div>
+            {% if error %}
+                <div class="alert alert-danger">{{ error }}</div>
+            {% endif %}
+            <button type="submit" class="btn btn-primary">注 册</button>
+        </form>
+        <div class="login-link">
+            已有账号？<a href="{{ url_for('login') }}">立即登录</a>
+        </div>
+    </div>
+
+    <script>
+        function checkPasswordStrength() {
+            const password = document.getElementById('password').value;
+            const passwordInput = document.getElementById('password');
+            const passwordError = document.getElementById('passwordError');
+
+            // 清除之前的错误信息
+            passwordError.style.display = 'none';
+            passwordError.textContent = '';
+
+            // 检查密码长度
+            if (password.length < 6 || password.length > 20) {
+                passwordInput.classList.add('invalid');
+                passwordInput.classList.remove('valid');
+                passwordError.textContent = '密码长度必须为6-20位';
+                passwordError.style.display = 'block';
+                return false;
+            }
+
+            // 检查是否包含空格
+            if (password.includes(' ')) {
+                passwordInput.classList.add('invalid');
+                passwordInput.classList.remove('valid');
+                passwordError.textContent = '密码不能包含空格';
+                passwordError.style.display = 'block';
+                return false;
+            }
+
+            // 检查字符类型
+            let hasUpper = /[A-Z]/.test(password);
+            let hasLower = /[a-z]/.test(password);
+            let hasNumber = /[0-9]/.test(password);
+            let hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+
+            let typeCount = 0;
+            if (hasUpper) typeCount++;
+            if (hasLower) typeCount++;
+            if (hasNumber) typeCount++;
+            if (hasSpecial) typeCount++;
+
+            if (typeCount < 2) {
+                passwordInput.classList.add('invalid');
+                passwordInput.classList.remove('valid');
+                passwordError.textContent = '密码必须包含大写字母、小写字母、数字和特殊符号中的至少两种';
+                passwordError.style.display = 'block';
+                return false;
+            }
+
+            // 密码符合要求
+            passwordInput.classList.add('valid');
+            passwordInput.classList.remove('invalid');
+            return true;
+        }
+        function validateAge(input) {
+            const ageError = document.getElementById('ageError');
+
+            // 如果年龄为空或大于等于12，清除错误
+            if (!input.value || parseInt(input.value) >= 12) {
+                input.classList.remove('invalid');
+                ageError.style.display = 'none';
+                return true;
+            }
+
+            // 年龄小于12，显示错误
+            input.classList.add('invalid');
+            ageError.textContent = '年龄必须不小于12岁';
+            ageError.style.display = 'block';
+            return false;
+        }
+        function validatePassword() {
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirm_password').value;
+            const confirmPasswordError = document.getElementById('confirmPasswordError');
+
+            // 验证密码强度
+            if (!checkPasswordStrength()) {
+                return false;
+            }
+
+            // 验证两次密码是否一致
+            if (password !== confirmPassword) {
+                confirmPasswordError.textContent = '两次输入的密码不一致';
+                confirmPasswordError.style.display = 'block';
+                return false;
+            }
+            //age
+            const ageInput = document.getElementById('age');
+            if (ageInput.value && !validateAge(ageInput)) {
+                return false;
+            }
+
+            return true;
+        }
+    </script>
+</body>
+</html>
